@@ -6,6 +6,10 @@
 #include "box.h"
 #include "demo.h"
 #include "option_list.h"
+/*
+added here
+*/
+#include <Windows.h>
 
 #ifdef OPENCV
 #include "opencv2/highgui/highgui_c.h"
@@ -1105,18 +1109,71 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     char *input = buff;
     int j;
     float nms=.45;    // 0.4F
+
+	/*
+	*/
+	char buf[1024];  /*缓冲区*/
+	FILE *fp;
+	int len;             /*行字符个数*/
+	char filename_s[21] = { 0 };
+	char prename[] = "pre_A";              //预测结果保存在当前路径下
+	int pic_index = 1;                     // 图片后缀
+	char pic_num[4] = { 0 };               //图片后缀字符串
+	/*
+	*/
+
+
     while(1){
+
         if(filename){
             strncpy(input, filename, 256);
             if(strlen(input) > 0)
                 if (input[strlen(input) - 1] == 0x0d) input[strlen(input) - 1] = 0;
         } else {
-            printf("Enter Image Path: ");
-            fflush(stdout);
-            input = fgets(input, 256, stdin);
-            if(!input) return;
-            strtok(input, "\n");
+
+			/*
+			//Store formal code for future use. Just in case.
+
+			printf("Enter Image Path: ");
+			fflush(stdout);
+			input = fgets(input, 256, stdin);
+			if(!input) return;
+			strtok(input, "\n");
+			*/
+
+			/*
+			To read image path from imagepath.txt
+				By Sting
+			*/
+
+			_itoa_s(pic_index, pic_num, 4, 10);
+			pic_index++;
+			char filename_1[] = "picpath/test_";   
+			char filename_2[] = ".txt";
+			strcat(filename_1, pic_num);
+			strcat(filename_1, filename_2);
+			strcpy(filename_s, filename_1);
+
+			//Do not delete the following three lines,'casue program will explode,trust me on this.
+			printf("\n%s\n", filename_s);                       
+			printf("\nSearching For Filename in : %s ",filename_s);
+			      
+
+
+			while ((fp = fopen(filename_s, "r")) == NULL)  { }
+
+			while (fgets(buf, 1024, fp) != NULL) {
+				input = buf;
+				if (!input) return;
+				strtok(input, "\n");
+			}
+
+			filename_s[13] = filename_s[13] + 1;
+
         }
+
+
+
         image im = load_image(input,0,0,net.c);
         int letterbox = 0;
         image sized = resize_image(im, net.w, net.h);
@@ -1131,7 +1188,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         time= what_time_is_it_now();
         network_predict(net, X);
         //network_predict_image(&net, im); letterbox = 1;
-        printf("%s: Predicted in %f seconds.\n", input, (what_time_is_it_now()-time));
+        printf("%s: Predicted in %f seconds. By Sting", input, (what_time_is_it_now()-time));
         //get_region_boxes(l, 1, 1, thresh, probs, boxes, 0, 0);
         // if (nms) do_nms_sort_v2(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         //draw_detections(im, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes);
@@ -1139,12 +1196,19 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letterbox);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
         draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, ext_output);
-        save_image(im, "predictions");
-        if (!dont_show) {
+
+		if (prename[4] == 90)  prename[4] = 65;
+        save_image(im, prename);
+		prename[4] = prename[4] + 1;
+		
+        /*
+		if (!dont_show) {
             show_image(im, "predictions");
         }
+		*/
 
         // pseudo labeling concept - fast.ai
+
         if(save_labels)
         {
             char labelpath[4096];

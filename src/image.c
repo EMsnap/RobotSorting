@@ -285,7 +285,7 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
     int i;
     for (i = 0; i < selected_detections_num; ++i) {
         const int best_class = selected_detections[i].best_class;
-        printf("%s: %.0f%%", names[best_class],    selected_detections[i].det.prob[best_class] * 100);
+        //printf("%s: %.0f%%", names[best_class],    selected_detections[i].det.prob[best_class] * 100);
         if (ext_output)
             printf("\t(left_x: %4.0f   top_y: %4.0f   width: %4.0f   height: %4.0f)\n",
                 (selected_detections[i].det.bbox.x - selected_detections[i].det.bbox.w / 2)*im.w,
@@ -303,6 +303,10 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
 
     // image output
     qsort(selected_detections, selected_detections_num, sizeof(*selected_detections), compare_by_probs);
+	/*
+	Added by Sting*/
+
+	FILE* box_coordinate = fopen("box_1.txt", "w");
     for (i = 0; i < selected_detections_num; ++i) {
             int width = im.h * .006;
             if (width < 1)
@@ -340,11 +344,33 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             if (top < 0) top = 0;
             if (bot > im.h - 1) bot = im.h - 1;
 
+
+			/*
+			Generate output file in box_coordinate.txt
+				By Sting
+			*/
+			const int best_class = selected_detections[i].best_class;
+			fprintf(box_coordinate, "Class:%s, Box£º%d %d %d %d\n",names[best_class], left, right, top, bot);		
+			/*
+			*/
+
+
             //int b_x_center = (left + right) / 2;
             //int b_y_center = (top + bot) / 2;
             //int b_width = right - left;
             //int b_height = bot - top;
             //sprintf(labelstr, "%d x %d - w: %d, h: %d", b_x_center, b_y_center, b_width, b_height);
+
+
+			/*
+			added by Sting, here to output box coodination
+			*/
+			
+			printf("%s: %.0f%%\n", names[best_class], selected_detections[i].det.prob[best_class] * 100);
+			printf("Box£º%d %d %d %d\n", left, right, top, bot);
+
+			/*
+			*/
 
             draw_box_width(im, left, top, right, bot, width, red, green, blue);
             if (alphabet) {
@@ -371,6 +397,9 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
                 free_image(tmask);
             }
     }
+	/*
+	Added by Sting*/
+	fclose(box_coordinate);
     free(selected_detections);
 }
 
@@ -421,7 +450,11 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
             if(top < 0) top = 0;
             if(bot > im.h-1) bot = im.h-1;
             printf("%s: %.0f%%", names[class_id], prob * 100);
-            
+
+			/*
+			added by Sting, here to output box coodination*/
+
+			printf("Box£º%d %d %d %d\n",left,right,top,bot);
             //printf(" - id: %d, x_center: %d, y_center: %d, width: %d, height: %d",
             //    class_id, (right + left) / 2, (bot - top) / 2, right - left, bot - top);
 
