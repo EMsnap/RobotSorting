@@ -22,9 +22,9 @@
 #endif
 #include "http_stream.h"
 #endif
-
+#define NULL ((void *)0)
 int windows = 0;
-
+static int boxfile_index = 1;
 float colors[6][3] = { {1,0,1}, {0,0,1},{0,1,1},{0,1,0},{1,1,0},{1,0,0} };
 
 float get_color(int c, int x, int max)
@@ -304,9 +304,22 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
     // image output
     qsort(selected_detections, selected_detections_num, sizeof(*selected_detections), compare_by_probs);
 	/*
-	Added by Sting*/
+	Added by Sting
+	To generate box coodination in box_xy
+	*/
+	
+	char pic_num[4] = { 0 };               //Í¼Æ¬ºó×º×Ö·û´®
+	_itoa_s(boxfile_index, pic_num, 4, 10);
+	boxfile_index++;
+	char filename_1[] = "box_xy/box_";
+	char filename_2[] = ".txt";
+	strcat(filename_1, pic_num);
+	strcat(filename_1, filename_2);
+	FILE* box_coordinate;
 
-	FILE* box_coordinate = fopen("box_1.txt", "w");
+	printf("\nSearching For Box_file in : %s ", filename_1);
+	while ((box_coordinate = fopen(filename_1, "w")) == NULL) {};
+
     for (i = 0; i < selected_detections_num; ++i) {
             int width = im.h * .006;
             if (width < 1)
@@ -334,10 +347,10 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
             box b = selected_detections[i].det.bbox;
             //printf("%f %f %f %f\n", b.x, b.y, b.w, b.h);
 
-            int left = (b.x - b.w / 2.)*im.w;
-            int right = (b.x + b.w / 2.)*im.w;
-            int top = (b.y - b.h / 2.)*im.h;
-            int bot = (b.y + b.h / 2.)*im.h;
+            float left = (b.x - b.w / 2.)*im.w;
+            float right = (b.x + b.w / 2.)*im.w;
+            float top = (b.y - b.h / 2.)*im.h;
+            float bot = (b.y + b.h / 2.)*im.h;
 
             if (left < 0) left = 0;
             if (right > im.w - 1) right = im.w - 1;
@@ -348,9 +361,16 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
 			/*
 			Generate output file in box_coordinate.txt
 				By Sting
+
+			Note that left for x_left, right for x_right and top for y_up and bot for y_down
 			*/
 			const int best_class = selected_detections[i].best_class;
-			fprintf(box_coordinate, "Class:%s, Box£º%d %d %d %d\n",names[best_class], left, right, top, bot);		
+			float center_x = (right + left) / 2.0;
+			float center_y = (bot + top) / 2.0;
+			//fprintf(box_coordinate, "Class:%s, Box£º%f %f %f %f  CenterX: %f  CenterY: %f\n",names[best_class], left, right, top,bot,center_x,center_y);
+			if(i< (selected_detections_num - 1)) fprintf(box_coordinate, "%s:X:%f:Y:%f\n", names[best_class], center_x, center_y);
+			else  fprintf(box_coordinate, "%s:X:%f:Y:%f", names[best_class], center_x, center_y);
+			//fprintf()
 			/*
 			*/
 
@@ -367,8 +387,8 @@ void draw_detections_v3(image im, detection *dets, int num, float thresh, char *
 			*/
 			
 			printf("%s: %.0f%%\n", names[best_class], selected_detections[i].det.prob[best_class] * 100);
-			printf("Box£º%d %d %d %d\n", left, right, top, bot);
-
+			//printf("Box£º%d %d %d %d\n", left, right, top, bot);
+			
 			/*
 			*/
 

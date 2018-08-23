@@ -1,0 +1,9 @@
+﻿  TestKinect.cpp
+TestKinect.cpp(112): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+TestKinect.cpp(153): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  正在生成代码
+  17 of 360 functions ( 4.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+  TestKinect.vcxproj -> D:\Projects-2018\Robotic_Sorting_7_13\Kinect\TestKinect\x64\Release\TestKinect.exe

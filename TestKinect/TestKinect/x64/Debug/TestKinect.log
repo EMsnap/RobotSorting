@@ -1,0 +1,10 @@
+﻿  stdafx.cpp
+  TestKinect.cpp
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(5): error C2871: “cv”: 具有该名称的命名空间不存在
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(11): error C2065: “Mat”: 未声明的标识符
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(11): error C2146: 语法错误: 缺少“;”(在标识符“img”的前面)
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(11): error C2065: “img”: 未声明的标识符
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(11): error C3861: “imread”: 找不到标识符
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(13): error C2065: “img”: 未声明的标识符
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(13): error C3861: “imshow”: 找不到标识符
+d:\projects-2018\robotic_sorting_7_13\kinect\testkinect\testkinect\testkinect.cpp(15): error C3861: “waitKey”: 找不到标识符

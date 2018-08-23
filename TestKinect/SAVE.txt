@@ -1,0 +1,269 @@
+// TestKinect.cpp : 定义控制台应用程序的入口点。
+//
+
+#include "stdafx.h"
+#include <stdio.h>
+#include <iostream>
+#include <Kinect.h>
+#include <windows.h>
+#include "opencv2/highgui.hpp"
+#include <cv.h>
+#include <thread>
+
+using namespace cv;
+using namespace std;
+
+static int num = 1;
+
+void t1() {
+	for (int i = 0; i < 80; i++) {
+		cout << "t111111\n";
+	}
+}
+
+void t2(int a) {
+	for (int i = 0; i < 80; i++) {
+		cout << "t22222222"<<a<<"\n";
+	}
+}
+
+int main()
+{
+	IKinectSensor* m_pKinectSensor;
+	IColorFrameSource* pColorFrameSource;
+	IColorFrameReader* m_pColorFrameReader;
+	IFrameDescription* pFrameDescription = NULL;
+	ColorImageFormat imageFormat = ColorImageFormat_None;
+	//深度Reader
+	IDepthFrameReader*      m_pDepthFrameReader;
+	IDepthFrameSource*      pDepthFrameSource = NULL;
+	IFrameDescription*      FrameDescription = NULL;
+
+	int nWidth, nHeight;
+	uchar *pBuffer = NULL;
+	UINT nBufferSize = 0;
+	
+	//保存数据到指定文件夹
+
+	string test = "D:\\Projects-2018\\Robotic_Sorting_7_13\\Kinect\\testpic\\test_B.jpg";
+	string test_txt = "D:\\git_project\\yolo\\darknetpro\\darknet\\build\\darknet\\x64\\picpath\\test_A.txt";
+	FILE *fp;
+	int k = 1;
+
+	
+	//一系列初始化操作
+
+
+	HRESULT hr = GetDefaultKinectSensor(&m_pKinectSensor);//获取默认传感器
+	assert(hr >= 0);
+	hr = m_pKinectSensor->Open();//打开传感器
+	assert(hr >= 0);
+	hr = m_pKinectSensor->get_ColorFrameSource(&pColorFrameSource);//打开颜色信息源
+
+
+	
+	//打开深度信息源
+
+	m_pKinectSensor->get_DepthFrameSource(&pDepthFrameSource);
+	
+	assert(hr >= 0);
+	pColorFrameSource->OpenReader(&m_pColorFrameReader);//打开颜色帧读取器
+
+
+	//打开深度读取器
+	pDepthFrameSource->OpenReader(&m_pDepthFrameReader);
+
+
+	assert(hr >= 0);
+
+
+
+	while (1) {
+
+		IColorFrame* pColorFrame = NULL;
+		IDepthFrame* pDepthFrame = NULL;       //深度帧
+
+		//以下为彩色图操作
+
+		//同时获得深度图和彩色图，确保获得的是同一张图片
+
+		while ((hr < 0) || (NULL == pColorFrame))//循环直到获取到最近的一帧
+		{
+			hr = m_pColorFrameReader->AcquireLatestFrame(&pColorFrame);
+		}
+		while (NULL == pDepthFrame)
+		{
+			m_pDepthFrameReader->AcquireLatestFrame(&pDepthFrame);
+		}
+
+		//获取彩色图片信息包括宽，高，格式
+		assert(hr >= 0);
+		pColorFrame->get_FrameDescription(&pFrameDescription);//获取图片描述信息
+		pFrameDescription->get_Width(&nWidth);
+		pFrameDescription->get_Height(&nHeight);
+		pColorFrame->get_RawColorImageFormat(&imageFormat);//输出结果为 ColorImageFormat_Yuy2    = 5，为Yuy2格式
+		Mat colorImg(nHeight, nWidth, CV_8UC4);//新建一个mat对象，用于保存读入的图像,注意参数的高在前，宽在后
+		pBuffer = colorImg.data;
+		nBufferSize = colorImg.rows*colorImg.step;
+		//调用CopyConvertedFrameDataToArray，此函数的作用是从pColorFrame对象中拷贝nBufferSize个字节到pBuffer所指的Mat矩阵中，按
+		//ColorImageFormat_Bgra格式保存
+		hr = pColorFrame->CopyConvertedFrameDataToArray(nBufferSize, reinterpret_cast<BYTE*>(pBuffer), ColorImageFormat_Bgra);
+		
+		
+		//保存图片到指定文件夹
+		string Img_Name = "D:\\git_project\\yolo\\darknetpro\\darknet\\build\\darknet\\x64\\testpic\\test_" + to_string(k) + ".jpg";
+		string txt_addr = "D:\\git_project\\yolo\\darknetpro\\darknet\\build\\darknet\\x64\\picpath\\test_" + to_string(k) + ".txt";
+		string buff = "testpic/test_" + to_string(k) + ".jpg";
+
+		//保存图片到指定文件夹
+		imwrite(Img_Name, colorImg);
+
+		//保存图片路径到TXT文件中，供YOLO读取。
+		/*const char*  txt_address = txt_addr.c_str();
+		const char*  buff_char = buff.c_str();
+		fopen_s(&fp, txt_address, "w");
+
+		cout << "Saving image...\n";
+		if (fp == NULL)
+		{
+			printf("open file error!");
+		}
+		else
+		{
+
+			fwrite(buff_char, 1, buff.size(), fp);
+			cout << "Done!" << "  File " << num << "\n";
+			num++;
+			fclose(fp);
+		}*/
+
+
+
+		/*
+		以下为深度图操作
+		*/
+
+		pDepthFrameSource->get_FrameDescription(&FrameDescription);
+
+		int depth_width, depth_height;
+
+		FrameDescription->get_Width(&depth_width);
+		FrameDescription->get_Height(&depth_height);
+		Mat DepthImg(depth_height, depth_width, CV_16UC1);         //建立图像矩阵
+		pDepthFrame->CopyFrameDataToArray(depth_height * depth_width, (UINT16 *)DepthImg.data);   //先把数据存入16位的图像矩阵中
+																								  //转换为8位图像
+		imwrite("D:\\Projects-2018\\Robotic_Sorting_7_13\\Kinect\\TestKinect\\DepthImage\\1.jpg", DepthImg);
+		
+		//imshow("Color", colorImg);
+
+		cout << DepthImg.at<UINT16>(240, 290) << endl;
+
+
+
+		/*
+		将彩色图映射到深度图
+		*/
+		UINT16 *depthData = new UINT16[424 * 512];
+		hr = pDepthFrame->CopyFrameDataToArray(424 * 512, depthData);
+		ICoordinateMapper*      m_pCoordinateMapper;
+		hr = m_pKinectSensor->get_CoordinateMapper(&m_pCoordinateMapper);
+		ColorSpacePoint m_colorpoint[512 * 600];
+		//m_pCoordinateMapper->MapDepthFrameToColorSpace(512 * 424, depthData, 512 * 424,m_colorpoint);
+
+		
+		
+		//cout << "\n" << "------------" << DepthImg.at<UINT16>(198, 555) << endl;
+		
+
+
+
+
+
+		/*
+		读取预测后的图片数据，即各个BOX的中心，并输出。
+		*/
+
+
+		/*FILE* box;
+		string Boxfile_Name = "D:\\git_project\\yolo\\darknetpro\\darknet\\build\\darknet\\x64\\box_xy\\box_" + to_string(k) + ".txt";
+		const char*  box_address = Boxfile_Name.c_str();
+		char box_buf[1024];          //用来读取每一行BOX的类别和坐标
+		cout << "Waiting for predicted box at file "<<k<<"\n";
+		while (fopen_s(&box, box_address, "r") != 0) {  };
+
+		const char *delim = ":";             //分割出类别及坐标
+		char *nextchar = NULL;              //下一个被分割的地址
+		char *nowchar = NULL;              //指向被处理的字符串
+		int class_num = 0;
+		char * box_nametest[20] = { "person","bottloe","book","hela" };
+		char * box_name[20] ;
+		float box_x[10], box_y[10];
+		char *end;
+
+		
+		while (!feof(box))
+		{
+			fgets(box_buf, 1024, box);
+			nowchar = strtok_s(box_buf, delim, &nextchar);
+
+			int char_num = 1;
+			while (nowchar != NULL) {
+
+				if (char_num == 3) {
+					box_x[class_num] = strtof(nowchar, &end);
+					//cout << "\n X: " << box_x[class_num];
+				}
+
+				if (char_num == 5){
+					box_y[class_num] = strtof(nowchar, &end);
+					//cout << "\t Y:" << box_y[class_num];
+					//cout << "\t Depth:" << DepthImg.at<UINT16>(box_x[class_num]/10+100,box_y[class_num] + 100);
+				}
+
+				if (char_num == 1) {
+					box_name[class_num] = nowchar;  
+					//cout << "\n"<<class_num << "\t"<<nowchar; 
+					//cout << "\t"<<box_name[0];
+				}
+	
+				char_num++;
+				nowchar = strtok_s(NULL, delim, &nextchar);
+
+			}
+			class_num++;
+		}
+		
+
+		//cout<< "\n"<<"------------"<<DepthImg.at<UINT16>(198, 555) << endl;
+
+		fclose(box);
+		*/
+		
+		
+
+
+		/*
+		转为8为方便观察
+		*/
+
+		DepthImg.convertTo(DepthImg, CV_8UC1, 255.0 / 4500);
+		imshow("display", DepthImg);
+		//cout << "The depth is " << DepthImg.at<UINT16>(198, 555) << endl;
+		//imshow("depthImg8", DepthImg);
+		/*imshow("display", colorImg);*/
+
+		if (waitKey(30) == VK_ESCAPE)
+			break;
+
+
+		k++;
+		//DepthImg.release();
+		Sleep(4000000);
+		pColorFrame->Release();
+		pDepthFrame->Release();
+		cout << "\n\n";
+	}
+	
+	return 0;
+}
+

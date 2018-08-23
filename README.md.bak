@@ -1,0 +1,97 @@
+# RobotSorting system using Kinect (Under-developed)
+
+
+This project implements a device for sorting common subjects using robot and Kinect.
+
+We build our recognition method on YOLO_v3, for more infomation on YOLO, see https://github.com/pjreddie/darknet.
+
+1. HOW TO INSTALL 
+2. HOW TO USE
+
+
+- To get started, you should make sure you have already installed the following dependancies
+
+   - OpenCv
+   - CUDA 9.0 
+   - CUDNN for Cuda 9.0
+   - Microsoft Visual Studio
+   - And all the file at this repo (RobotSorting)
+ 
+   I will not follow you through all this and it WILL BE PAINFUL.
+
+   Note that if you are using Linix, this project is NOT suitable for you.
+   
+
+-  After downloading all the dependancies mentioned above, you can use VS2015 ( Not tested on other versions ) to make your 
+   darknet.exe file at "darknetpro\darknet\build\darknet\x64". 
+  
+   In CMD, after entering "darknetpro\darknet\build\darknet\x64", use the following command:
+ 
+   /* darknet.exe detector test data/coco.data yolov3.cfg yolov3.weights -i 0 -thresh 0.25 */
+  
+   If you see something like this: 
+   
+   ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/start1.jpg)
+  
+   It means you successfully downloaded YOLO3 on your platform.
+   
+- The program will search in file 
+ 
+  darknetpro\darknet\build\darknet\x64\picpath 
+  
+  to get your test picture, make sure you have named them like test_1 test_2 and so on. 
+  These file contain the address of your test pictures. For those pictures, put them in: 
+  
+  D:\git_project\yolo\darknetpro\darknet\build\darknet\x64\testpic
+  
+  For a test, we used this picture:
+  
+  ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/test_1.jpg)
+  
+  After doing so, run the darknet again and you will get output like this:
+  
+  ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/start3.jpg)
+  
+  And a picture after prediction at 
+  
+  D:\git_project\yolo\darknetpro\darknet\build\darknet\x64
+  
+  Like this:
+  
+  ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/pre_A.jpg)
+  
+  /* Note that there are several class we won't use in our future work, for example the DININGTABLE in the picture */
+  /* We use COCO to train our model which contains more than 80 classes of object, here I list all of them below */
+  
+  [¡®person¡¯, ¡®bicycle¡¯, ¡®car¡¯, ¡®motorcycle¡¯, ¡®airplane¡¯, ¡®bus¡¯, ¡®train¡¯, ¡®truck¡¯, ¡®boat¡¯, ¡®traffic light¡¯, ¡®fire hydrant¡¯, ¡®stop sign¡¯, ¡®parking meter¡¯, ¡®bench¡¯, ¡®bird¡¯, ¡®cat¡¯, ¡®dog¡¯, ¡®horse¡¯, ¡®sheep¡¯, ¡®cow¡¯, ¡®elephant¡¯, ¡®bear¡¯, ¡®zebra¡¯, ¡®giraffe¡¯, ¡®backpack¡¯, ¡®umbrella¡¯, ¡®handbag¡¯, ¡®tie¡¯, ¡®suitcase¡¯, ¡®frisbee¡¯, ¡®skis¡¯, ¡®snowboard¡¯, ¡®sports ball¡¯, ¡®kite¡¯, ¡®baseball bat¡¯, ¡®baseball glove¡¯, ¡®skateboard¡¯, ¡®surfboard¡¯, ¡®tennis racket¡¯, ¡®bottle¡¯, ¡®wine glass¡¯, ¡®cup¡¯, ¡®fork¡¯, ¡®knife¡¯, ¡®spoon¡¯, ¡®bowl¡¯, ¡®banana¡¯, ¡®apple¡¯, ¡®sandwich¡¯, ¡®orange¡¯, ¡®broccoli¡¯, ¡®carrot¡¯, ¡®hot dog¡¯, ¡®pizza¡¯, ¡®donut¡¯, ¡®cake¡¯, ¡®chair¡¯, ¡®couch¡¯, ¡®potted plant¡¯, ¡®bed¡¯, ¡®dining table¡¯, ¡®toilet¡¯, ¡®tv¡¯, ¡®laptop¡¯, ¡®mouse¡¯, ¡®remote¡¯, ¡®keyboard¡¯, ¡®cell phone¡¯, ¡®microwave¡¯, ¡®oven¡¯, ¡®toaster¡¯, ¡®sink¡¯, ¡®refrigerator¡¯, ¡®book¡¯, ¡®clock¡¯, ¡®vase¡¯, ¡®scissors¡¯, ¡®teddy bear¡¯, ¡®hair drier¡¯, ¡®toothbrush¡¯]
+  
+  
+  Back to the point, you will get an output file which contains the pixel position of the Bounding Box (we take the x and y of the center
+  pixel for future work) at:
+  
+  \darknetpro\darknet\build\darknet\x64\box_xy
+  
+  Like this:
+  
+  ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/box.jpg)
+  
+  
+- Connect Kinect to YOLO
+
+  1. Download TestKincet in this project, all of the source files are in it.
+  
+  2. Connect the Kincet to your device and run the code at \TestKinect. 
+  
+  3. The program will take photos and save them at 
+  
+     \darknetpro\darknet\build\darknet\x64\testpic
+  
+  4. Now start YOLO_V3, it will search images in this file and make preditions.
+  
+  5. Program at TestKinect would search the outputfile at \darknetpro\darknet\build\darknet\x64\box_xy to get the position of
+     the box and calculate its correspoding depth (the distance of the objects)
+     
+     Eventually you have this:
+     
+     
+   ![Alt Text](https://github.com/EMsnap/RobotSorting/blob/master/readpic/depth.jpg)
